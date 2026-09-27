@@ -38,6 +38,7 @@ export function setLanguage(lang) {
     node.textContent = t(node.dataset.i18n);
   });
   document.getElementById("language").value = current;
+  document.getElementById("language").setAttribute("aria-label", t("language"));
   document.getElementById("manual").href = `manual-${current}.html`;
 }
 export function errorMessage(raw) {

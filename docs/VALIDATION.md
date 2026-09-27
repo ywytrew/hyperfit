@@ -49,3 +49,9 @@ Positive samples do not prove global material stability or reproduce Abaqus diag
 Local browser exercised synthetic joint fitting, live candidate curves/table, sampled-stability labels and selected-model FEM comparison. API tests verify explicit column conversions, downloadable JSON with selected candidate, and saved-result recovery. Only synthetic data were used for this workflow.
 
 The recovered project's separate audit read 11 worksheets and checked original-source hashes without changing the old files. Real-data calibration still requires confirmation of stress measure/area, experiment grouping and the intended observation operator. No manuscript or experimental workbook is included in this distribution.
+
+## Public repository CI
+
+[GitHub Actions run 36323358574](https://github.com/ywytrew/hyperfit/actions/runs/36323358574) passed on the initial public commit 7842630: Ubuntu / Python 3.12 ran all 91 tests, regenerated manuals without differences, and completed the full FEM verification command. The separate container job built the image, started Compose, passed HTTP checks for the API and localized assets, and verified writes as the non-root container user to the persisted data directory. This is CI verification, not a macOS hardware test or public multiuser deployment.
+
+Browser acceptance on Windows covered English CSV mapping and invalid-column diagnostics, joint fitting while switching to Japanese, preserved seed and selected candidate when switching back, and translated FEM results. Original diagnostics remain expandable.
