@@ -1,0 +1,10 @@
+{
+  "deviatoric": "mooney_rivlin",
+  "volumetric": "exponential_logJ",
+  "parameters": {
+    "C10": 0.4,
+    "C01": 0.15,
+    "K0": 100,
+    "beta": 1000
+  }
+}

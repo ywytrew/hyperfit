@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HyperFit deployment guide</title><link rel="stylesheet" href="style.css">
+<style>.manual {max-width: 920px; line-height: 1.85; background: white; margin: 24px auto; border-radius: 12px;}
+.manual h2 {margin-top: 32px; font-size: 20px;} .manual h1 {line-height: 1.3;}
+.manual pre {white-space: pre-wrap; overflow-wrap: anywhere; background: #f2f5f9; padding: 18px;}
+.manual a {color: #215ed4;} .manual p,.manual li {overflow-wrap: anywhere;}
+</style></head><body><main class="manual"><nav><a href="./?lang=en">← Back to app</a></nav>
+<h1>HyperFit deployment guide</h1>
+<p><a href="deployment-zh.html">中文</a> · <a href="deployment-en.html">English</a> · <a href="deployment-ja.html">日本語</a></p>
+<h2>Get the code</h2>
+<p>This deploys the Python API and the complete trilingual web interface. Python 3.12 is recommended; the project requires at least 3.11. Install Git and Python first. No Node/npm build, GPU or Abaqus installation is required.</p>
+<pre><code>git clone https://github.com/ywytrew/hyperfit.git
+cd hyperfit</code></pre>
+<h2>Windows</h2>
+<p>Run from the repository root:</p>
+<pre><code>py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
+.\.venv\Scripts\python.exe -m uvicorn hyperfit.api:app --host 127.0.0.1 --port 8765 --workers 1</code></pre>
+<p>Open http://127.0.0.1:8765. Chinese is the initial default; select English or use ?lang=en, or ?lang=ja for Japanese. Later, double-click start.cmd. Press Ctrl+C to stop. If PowerShell blocks the launcher, use the direct Python command above without changing system execution policy. For a busy port, replace 8765 with 8766, or run ./start.ps1 -Port 8766.</p>
+<h2>Linux / macOS</h2>
+<p>Prepare Python 3.12 with venv support, then run from the repository root:</p>
+<pre><code>python3.12 -m venv .venv
+.venv/bin/python -m pip install -r requirements-lock.txt
+.venv/bin/python -m uvicorn hyperfit.api:app --host 127.0.0.1 --port 8765 --workers 1</code></pre>
+<p>Open the same local address; Ctrl+C stops the process. Keep one worker. Job state and cancellation currently belong to one process, so increasing Uvicorn workers is not a supported scaling method.</p>
+<h2>Docker Compose</h2>
+<p>Install and start Docker Engine 28+ or corresponding Docker Desktop with Linux containers, and the Compose plugin. The development PC had no running Docker daemon, so the container was not run locally; repository CI includes a build and HTTP smoke check.</p>
+<pre><code>docker compose up --build -d
+docker compose ps
+docker compose logs --tail=50 hyperfit
+# Stop without removing saved runs:
+docker compose down</code></pre>
+<p>The container listens on 0.0.0.0:8765 internally, while Compose publishes only 127.0.0.1:8765 on the host. It runs as a non-root user with one worker. The hyperfit-runs named volume retains records at /data. Only application sources and locked dependencies enter the image, not local experiments or runs. The health check requests /api/models. Do not use down -v unless you intend to delete the run volume.</p>
+<p>If host port 8765 is occupied, change the mapping in compose.yaml to 127.0.0.1:8766:8765 and browse port 8766. Changing only the browser address is insufficient.</p>
+<h2>Remote server through SSH</h2>
+<p>Clone and start the native or Docker version on your own server. Keep it bound to loopback; do not open firewall port 8765. On the researcher&#x27;s computer, substitute the SSH account and hostname:</p>
+<pre><code>ssh -N -L 8765:127.0.0.1:8765 your-user@your-server</code></pre>
+<p>Keep that SSH session open and browse http://127.0.0.1:8765 locally. If needed, change the tunnel&#x27;s leftmost port to 8766. Imported data and records are processed and stored on the remote server. This application has no built-in authentication, user isolation or quotas. This guide therefore uses SSH access. A public multiuser service needs authentication, HTTPS, access control and a compute queue design; changing the bind address alone is insufficient.</p>
+<h2>Frontend, backend and records</h2>
+<p>The default service serves static frontend files and /api/* together, while scientific Python modules are independent of the UI. A separate frontend may set window.HYPERFIT_API before loading app.js. Development CORS allows only localhost:5173 and 127.0.0.1:5173. Prefer a same-origin reverse proxy for a managed deployment. GitHub Pages cannot execute the Python/FEM backend.</p>
+<p>Native runs default to runs/ in the repository. Set HYPERFIT_RUNS to a dedicated writable directory before startup to relocate them. Docker uses the named volume at /data. Back up the complete directory or volume and protect exported JSON containing measurements. Interrupted jobs do not resume automatically. Before updating, export records, back up runs and record git rev-parse HEAD. Stop, git pull --ff-only, install the lock file or rebuild Compose, and restart. To roll back, check out the old commit in a separate directory and recreate its environment without overwriting uncommitted work.</p>
+<h2>Verify and maintain</h2>
+<p>Use the virtual environment&#x27;s Python (Windows: .venv/Scripts/python.exe; Linux/macOS: .venv/bin/python):</p>
+<pre><code>python -m pytest -q
+python -m hyperfit.verify --output validation-results/fem-verification.json
+python tools/build_manuals.py
+python tools/package_source.py</code></pre>
+<p>Browser acceptance: load the synthetic example, fit, switch languages, select a candidate, run the cube check and export JSON. Interactive API documentation is at /docs. Scientific limits are in the <a href="manual-en.html">manual</a> and <a href="https://github.com/ywytrew/hyperfit/blob/main/docs/VALIDATION.md">validation record</a>. Windows native execution was tested on the development PC; consult actual Actions results for Linux and container validation. macOS has not been tested on hardware.</p>
+<p>Official networking and service references: <a href="https://docs.docker.com/engine/network/port-publishing/">Docker port publishing</a> · <a href="https://uvicorn.dev/deployment/">Uvicorn deployment</a></p>
+</main></body></html>

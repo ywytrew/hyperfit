@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HyperFit 使用手册</title><link rel="stylesheet" href="style.css">
+<style>.manual {max-width: 920px; line-height: 1.85; background: white; margin: 24px auto; border-radius: 12px;}
+.manual h2 {margin-top: 32px; font-size: 20px;} .manual h1 {line-height: 1.3;}
+.manual pre {white-space: pre-wrap; overflow-wrap: anywhere; background: #f2f5f9; padding: 18px;}
+.manual a {color: #215ed4;} .manual p,.manual li {overflow-wrap: anywhere;}
+</style></head><body><main class="manual"><nav><a href="./?lang=zh">← 返回应用</a></nav>
+<h1>HyperFit 使用手册</h1>
+<p><a href="manual-zh.html">中文</a> · <a href="manual-en.html">English</a> · <a href="manual-ja.html">日本語</a></p>
+<h2>启动与语言</h2>
+<p>按照<a href="deployment-zh.html">部署教程</a>启动，访问 http://127.0.0.1:8765。页头可切换中文、English、日本語，浏览器会记住选择；?lang=zh、?lang=en、?lang=ja 可指定语言。切换时保留已载入数据、参数、seed、当前任务与候选选择。刷新页面会重新初始化界面，应先导出结果。JSON 字段名和参数名不随语言变化。“使用手册”链接打开当前语言版本。</p>
+<p>合成示例含人为噪声，只用于演示流程，不代表真实实验验证。</p>
+<h2>导入数据</h2>
+<p>支持 CSV、TSV、XLSX，第一行必须是列名；旧 XLS 需先转换。选择工作表、轴向应变列、应力列、体积列及各自定义。交互拟合接受 4–3000 个对齐且有限的观测点，轴向应变必须严格递增。请选择单一加载分支；压缩分支需由用户明确按应变递增方向导出。不得混合加载／卸载、重复点或不同试样。文件上限 10 MB，工作表上限 50000 行，不自动排序、删点或合并重复数据。</p>
+<p>内部采用轴向对数应变 ln λ、Cauchy 应力 σ（MPa）、对数体积应变 ln J，J 为当前体积／参考体积。可输入工程应变 λ−1 或伸长比 λ；应力支持 Pa、kPa、MPa；名义应力 P 按 σ=P λ/J 转为真实应力；体积 J−1 或 J 转为 ln J。ln J 不等于 J−1，不能靠数值大小猜应力定义。均匀主轴变形下，ln J 等于三个主对数应变之和。</p>
+<p>本地服务器在本机处理数据；远程部署时，导入数据和运行记录会传送并保存在远程服务器上。拟合前必须确认原始计量定义。</p>
+<h2>组合材料模型</h2>
+<p>偏应变项可选 Neo-Hookean、Mooney–Rivlin、二阶 Polynomial、Yeoh、Ogden 1／2／3 项。体积项可独立选择：</p>
+<ul>
+<li>quadratic_J：K0/2 · (J−1)²。</li>
+<li>quadratic_logJ：K0/2 · (ln J)²。</li>
+<li>exponential_logJ：K0/(2β) · [exp(β(ln J)²)−1]，β=0 时连续退化为 quadratic_logJ。</li>
+<li>polynomial2_J：(J−1)²/D1 + (J−1)⁴/D2。</li>
+</ul>
+<p>论文公式组合为 Mooney–Rivlin＋exponential_logJ。它是根据能量表达式重新实现，不是恢复失去的源码，也没有复现论文实验结果。模量单位为 MPa，D 参数单位为 MPa 的倒数，β 和 Ogden α 无量纲。</p>
+<p>Ogden 采用 Σᵢ 2μᵢ/αᵢ² (Σₖ λ̄ₖ^αᵢ−3)，初始剪切模量为 Σμᵢ。与其他软件比较前必须核对系数约定。默认正 μ、正负交替 α 区间是一种受限参数化，每个 α 区间不得跨零。项的置换可以产生等价能量。</p>
+<p>能量表达式虽然模块化，响应仍然耦合：每一个轴向伸长下都通过横向应力为零求横向收缩和 J。没有预设不可压缩，也不是分别拟合应力和体积。当前识别假设为各向同性、均匀单轴变形。</p>
+<h2>初值、范围与 seed</h2>
+<p>展开“初值与参数边界”，按材料量级设置范围。默认范围只是演示，搜索边界不能证明稳定。Polynomial 部分系数可为负，但初始剪切模量必须为正，求解路径也必须有效。</p>
+<p>“研究偏好与计算预算”中，自动模式默认生成 48 个带 seed 的 Latin hypercube 样本：正模量用对数坐标，其他参数用线性坐标。每组先求完整耦合响应，再按联合目标与参数距离选取多个有效起点。人工模式使用输入值作为首个起点，其余起点在附近扰动。</p>
+<p>seed 范围为整数 0–4294967295；起点数 1–10，每起点评估预算 5–500，采样池大小 10–256。有效起点不足时应检查物理边界或增大池。相同数据、范围、seed 和版本可复现；更换 seed 检查初值敏感性。seed 不能让不合理的范围变得合理。权重扫描复用相同起点，以分辨权重效应。</p>
+<h2>选择误差准则</h2>
+<p>峰值归一化 RMSE 是 RMSE 除以观测绝对峰值。相同绝对误差贡献相同，相同百分比误差在大幅值区域贡献更大。逐点相对误差在零附近也有问题，没有一个指标能自动确定科学上最佳模型。</p>
+<p>默认绝对＋相对容差使用 s(y)=sqrt(a²+(b|y|)²)，分别设置应力和体积绝对尺度，以及相对比例。这让原点附近具有有限尺度，并调整大信号区域的影响。目标按应变区间梯形积分加权，避免单纯因采样密集而占优势。Soft-L1 和 Huber 减小离群点影响，平方损失不做这种抑制。稳健变换先于积分权重执行。</p>
+<p>容差和低应变区权重是研究偏好，不是测量标准差或置信区间。如果确有独立观测的标准差模型，可选“已知标准差”和平方损失，对应独立高斯误差下的加权最小二乘。该模式提交请求时禁用偏好权重和权重扫描。当前未建模误差相关、DIC 系统误差和应变坐标测量误差。</p>
+<h2>比较候选参数</h2>
+<p>拟合后检查两条响应曲线、低应变区域、残差、收敛状态、边界命中及灵敏度。残差图始终显示预测减观测再除以各通道峰值，并不是稳健加权后的目标。候选表显示峰值 NRMSE；折中散点横轴为应力 RMSE（MPa），纵轴为 ln J RMSE。</p>
+<p>“探索应力／体积折中”在三个权重比下重复局部搜索，计算量约为三倍。“非支配”只表示在已探索候选中，不能在不恶化一个显示误差的前提下改善另一个。它不是全局帕累托前沿证明，也不能自动将膝点当作最佳材料。应先定义正确的数据与误差尺度，再用它考察研究偏好的影响。</p>
+<p>点击候选行或散点，也可按 Enter，切换参数和曲线。预算终止结果仅供诊断。默认合格候选必须收敛并通过采样声学张量正值性筛查；有限状态与方向不保证全局稳定。很大的或不可用的灵敏度条件数、参数到达边界都值得进一步检查。曲线近似不等于参数可辨识或唯一，可结合其他加载模式、重复试验和未参与拟合的区间验证。</p>
+<h2>FEM 验证与导出</h2>
+<p>“运行立方体检验”使用当前选择的拟合参数；尚未拟合时使用输入参数。FElupe u/p/J 三场混合单元的自由横向收缩立方体，与独立材料点应力计算对照。界面中的均匀算例不是原试样几何反演，也没有验证 Abaqus、UHYPER 或 UMAT。</p>
+<p>命令行验证还包括夹持非均匀变形及网格加密。反力收敛不代表体积场准确：必须检查混合 J 与 det(F) 的差别，并区分 mean(ln J) 与 ln(mean J)。现有非均匀算例尚未确立局部体积场收敛，详见<a href="https://github.com/ywytrew/hyperfit/blob/main/docs/VALIDATION.md">验证记录</a>。</p>
+<p>“导出运行记录”下载 JSON，包含输入数据、模型、边界、seed、初值诊断、目标、候选、所选编号、依赖版本及科学源码哈希。服务器文件位于 runs/&lt;job-id&gt;/ 或 HYPERFIT_RUNS 指定目录。重启后已完成结果可按 ID 查询，未完成任务标为 interrupted。界面尚无历史任务列表或一键导入 JSON 重放。取消 FEM 在当前增量完成后生效。</p>
+<h2>故障排查与维护</h2>
+<p>查看翻译后的错误摘要，并展开原始技术诊断。无有效候选时先核对单位、物理量定义、应变范围和参数范围，不要靠删测量点掩盖求解失败。端口 8765 被占用时换用其他端口。</p>
+<p>翻译表在 hyperfit/frontend/locales/{zh,en,ja}.json；三种语言的键和占位符需一致，不改变科学计算标识或数式。浏览器版手册由 tools/build_manuals.py 从 Markdown 生成，修改后需再生成并运行测试。详见<a href="https://github.com/ywytrew/hyperfit/blob/main/docs/CONTRIBUTING.md">贡献指南</a>和<a href="https://github.com/ywytrew/hyperfit/blob/main/docs/methods.md">方法说明</a>。</p>
+<p>公开重建代码采用 GPL-3.0-or-later，不包含原始实验工作簿、论文 PDF 或旧仿真输出。</p>
+</main></body></html>

@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>HyperFit</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/">H<span>ƒ</span> <b>HyperFit</b></a
+      ><span class="badge" data-i18n="preview"></span><span class="grow"></span>
+      <label class="language"
+        ><span data-i18n="language"></span
+        ><select id="language">
+          <option value="zh">中文</option>
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
+        </select></label
+      >
+      <a
+        id="manual"
+        class="manual-link"
+        href="manual-zh.html"
+        target="_blank"
+        rel="noopener"
+        data-i18n="manual"
+      ></a>
+      <button id="demo" class="quiet" data-i18n="demo"></button
+      ><button id="export" class="quiet" disabled data-i18n="export"></button>
+    </header>
+    <main>
+      <div class="intro">
+        <div>
+          <p class="eyebrow" data-i18n="eyebrow"></p>
+          <h1 data-i18n="heading"></h1>
+          <p data-i18n="intro"></p>
+        </div>
+        <div class="intro-note" data-i18n="units"></div>
+      </div>
+      <div class="layout">
+        <aside>
+          <section>
+            <h2><span>01</span> <span data-i18n="data.heading"></span></h2>
+            <div id="dataset" class="dataset" data-i18n="data.loading"></div>
+            <label class="file-button"
+              ><span data-i18n="data.import"></span
+              ><input id="file" type="file" accept=".csv,.tsv,.xlsx"
+            /></label>
+            <p class="hint" data-i18n="data.hint"></p>
+          </section>
+          <section>
+            <h2><span>02</span> <span data-i18n="model.heading"></span></h2>
+            <label class=""
+              ><span data-i18n="model.dev"></span
+              ><select id="dev"></select></label
+            ><label class=""
+              ><span data-i18n="model.vol"></span
+              ><select id="vol"></select
+            ></label>
+            <div id="formula" class="formula"></div>
+            <details>
+              <summary data-i18n="model.bounds"></summary>
+              <div class="param-head">
+                <span data-i18n="param.name"></span
+                ><span data-i18n="param.value"></span
+                ><span data-i18n="param.lower"></span
+                ><span data-i18n="param.upper"></span>
+              </div>
+              <div id="parameters"></div>
+              <p class="hint" data-i18n="model.hint"></p>
+            </details>
+          </section>
+          <section>
+            <h2><span>03</span> <span data-i18n="fit.heading"></span></h2>
+            <label class=""
+              ><span data-i18n="fit.scale"></span
+              ><select id="mode">
+                <option value="tolerance" data-i18n="mode.tolerance"></option>
+                <option value="peak" data-i18n="mode.peak"></option>
+                <option
+                  value="uncertainty"
+                  data-i18n="mode.uncertainty"
+                ></option></select
+            ></label>
+            <p class="hint" id="mode-note"></p>
+            <div class="pair">
+              <label class=""
+                ><span data-i18n="fit.sa"></span
+                ><input
+                  id="sa"
+                  type="number"
+                  value=".02"
+                  min=".000001"
+                  step=".005" /></label
+              ><label class=""
+                ><span data-i18n="fit.va"></span
+                ><input
+                  id="va"
+                  type="number"
+                  value=".0002"
+                  min=".00000001"
+                  step=".0001"
+              /></label>
+            </div>
+            <div class="pair">
+              <label class=""
+                ><span data-i18n="fit.relative"></span
+                ><input
+                  id="relative"
+                  type="number"
+                  value=".02"
+                  min="0"
+                  step=".01" /></label
+              ><label class=""
+                ><span data-i18n="fit.loss"></span
+                ><select id="loss">
+                  <option value="soft_l1" data-i18n="loss.soft_l1"></option>
+                  <option value="linear" data-i18n="loss.linear"></option>
+                  <option value="huber" data-i18n="loss.huber"></option></select
+              ></label>
+            </div>
+            <details>
+              <summary data-i18n="fit.advanced"></summary>
+              <label class=""
+                ><span data-i18n="fit.initialization"></span
+                ><select id="initialization">
+                  <option value="bounded" data-i18n="init.bounded"></option>
+                  <option
+                    value="manual"
+                    data-i18n="init.manual"
+                  ></option></select
+              ></label>
+              <div class="pair">
+                <label class=""
+                  ><span data-i18n="fit.seed"></span
+                  ><input
+                    id="seed"
+                    type="number"
+                    value="42"
+                    min="0"
+                    step="1"
+                    max="4294967295" /></label
+                ><label class=""
+                  ><span data-i18n="fit.pool"></span
+                  ><input
+                    id="poolsize"
+                    type="number"
+                    value="48"
+                    min="10"
+                    step="1"
+                    max="256"
+                /></label>
+              </div>
+              <p class="hint" data-i18n="fit.initHint"></p>
+              <label class=""
+                ><span data-i18n="fit.lowWeight"></span
+                ><input
+                  id="lowweight"
+                  type="number"
+                  value="1"
+                  min="1"
+                  step="any"
+                  max="100"
+              /></label>
+              <div class="pair">
+                <label class=""
+                  ><span data-i18n="fit.starts"></span
+                  ><input
+                    id="starts"
+                    type="number"
+                    value="2"
+                    min="1"
+                    step="1"
+                    max="10" /></label
+                ><label class=""
+                  ><span data-i18n="fit.budget"></span
+                  ><input
+                    id="budget"
+                    type="number"
+                    value="80"
+                    min="5"
+                    step="1"
+                    max="500"
+                /></label>
+              </div>
+              <label class="check"
+                ><input id="tradeoff" type="checkbox" /><span
+                  data-i18n="fit.tradeoff"
+                ></span
+              ></label>
+              <p class="hint" data-i18n="fit.tradeoffHint"></p>
+            </details>
+            <button id="fit" class="primary" data-i18n="fit.start"></button
+            ><button
+              id="cancel"
+              class="quiet"
+              hidden
+              data-i18n="fit.cancel"
+            ></button>
+            <p
+              id="progress"
+              role="status"
+              aria-live="polite"
+              class="progress"
+            ></p>
+            <details id="progress-details" class="error-details" hidden>
+              <summary data-i18n="error.details"></summary>
+              <pre></pre>
+            </details>
+          </section>
+        </aside>
+        <article>
+          <section class="chart-card">
+            <div class="section-top">
+              <div>
+                <p class="eyebrow" data-i18n="response.eyebrow"></p>
+                <h2 data-i18n="response.heading"></h2>
+              </div>
+              <label class="check"
+                ><input type="checkbox" id="zoom" /><span
+                  data-i18n="response.zoom"
+                ></span
+              ></label>
+            </div>
+            <div class="legend">
+              <i class="dot exp"></i><span data-i18n="response.observed"></span
+              ><i class="dot pred"></i
+              ><span data-i18n="response.predicted"></span>
+            </div>
+            <div id="stress-chart" class="chart"></div>
+            <div id="volume-chart" class="chart"></div>
+            <p id="curve-note" class="hint"></p>
+          </section>
+          <section>
+            <div class="section-top">
+              <div>
+                <p class="eyebrow" data-i18n="residual.eyebrow"></p>
+                <h2 data-i18n="residual.heading"></h2>
+              </div>
+              <span class="small" data-i18n="residual.sign"></span>
+            </div>
+            <div id="residual-chart" class="chart compact"></div>
+            <p class="hint" data-i18n="residual.hint"></p>
+          </section>
+          <section>
+            <div class="section-top">
+              <div>
+                <p class="eyebrow" data-i18n="candidate.eyebrow"></p>
+                <h2 data-i18n="candidate.heading"></h2>
+              </div>
+              <span id="count" class="small"></span>
+            </div>
+            <div
+              id="candidate-empty"
+              class="empty"
+              data-i18n="candidate.empty"
+            ></div>
+            <div id="pareto-chart" class="chart compact" hidden></div>
+            <div class="table-wrap">
+              <table id="candidates" hidden>
+                <thead>
+                  <tr>
+                    <th data-i18n="candidate.name"></th>
+                    <th data-i18n="candidate.stress"></th>
+                    <th data-i18n="candidate.volume"></th>
+                    <th data-i18n="candidate.optimizer"></th>
+                    <th data-i18n="candidate.stability"></th>
+                    <th data-i18n="candidate.condition"></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <pre id="selected-parameters" hidden></pre>
+          </section>
+          <section class="verification">
+            <div>
+              <p class="eyebrow" data-i18n="fem.eyebrow"></p>
+              <h2 data-i18n="fem.heading"></h2>
+              <p class="hint" data-i18n="fem.hint"></p>
+            </div>
+            <button id="fem" class="secondary" data-i18n="fem.run"></button>
+            <p id="fem-result" class="hint"></p>
+          </section>
+        </article>
+      </div>
+      <footer data-i18n="footer"></footer>
+    </main>
+    <dialog id="import-dialog">
+      <form id="mapping">
+        <h2 data-i18n="import.heading"></h2>
+        <p class="hint" data-i18n="import.hint"></p>
+        <label class=""
+          ><span data-i18n="import.sheet"></span
+          ><select id="sheet"></select
+        ></label>
+        <div class="pair">
+          <label class=""
+            ><span data-i18n="import.strainCol"></span
+            ><select id="strain-col"></select></label
+          ><label class=""
+            ><span data-i18n="import.strainMeasure"></span
+            ><select id="strain-measure">
+              <option value="log" data-i18n="strain.log"></option>
+              <option
+                value="engineering"
+                data-i18n="strain.engineering"
+              ></option>
+              <option
+                value="stretch"
+                data-i18n="strain.stretch"
+              ></option></select
+          ></label>
+        </div>
+        <div class="pair">
+          <label class=""
+            ><span data-i18n="import.stressCol"></span
+            ><select id="stress-col"></select></label
+          ><label class=""
+            ><span data-i18n="import.stressMeasure"></span
+            ><select id="stress-measure">
+              <option value="cauchy" data-i18n="stress.cauchy"></option>
+              <option
+                value="nominal"
+                data-i18n="stress.nominal"
+              ></option></select
+          ></label>
+        </div>
+        <label class=""
+          ><span data-i18n="import.unit"></span
+          ><select id="stress-unit">
+            <option>MPa</option>
+            <option>Pa</option>
+            <option>kPa</option>
+          </select></label
+        >
+        <div class="pair">
+          <label class=""
+            ><span data-i18n="import.volumeCol"></span
+            ><select id="volume-col"></select></label
+          ><label class=""
+            ><span data-i18n="import.volumeMeasure"></span
+            ><select id="volume-measure">
+              <option value="log_J">ln J</option>
+              <option value="J_minus_1">J−1</option>
+              <option value="J">J</option>
+            </select></label
+          >
+        </div>
+        <p id="import-summary" class="hint"></p>
+        <p id="import-error" class="error"></p>
+        <details id="import-error-details" class="error-details" hidden>
+          <summary data-i18n="error.details"></summary>
+          <pre></pre>
+        </details>
+        <div class="actions">
+          <button
+            type="button"
+            id="close-import"
+            class="quiet"
+            data-i18n="import.cancel"
+          ></button
+          ><button
+            type="submit"
+            class="primary"
+            data-i18n="import.use"
+          ></button>
+        </div>
+      </form>
+    </dialog>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

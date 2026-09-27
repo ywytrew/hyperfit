@@ -1,0 +1,6 @@
+**
+!requirements-lock.txt
+!hyperfit/
+!hyperfit/**
+hyperfit/**/__pycache__/
+hyperfit/**/*.pyc

@@ -1,0 +1,14 @@
+.venv/
+.uv-cache/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+runs/
+validation-results/
+*.log
+.npm-cache/
+dist/
+build/
+local-backups/
+pytest-of-*/
+.env
