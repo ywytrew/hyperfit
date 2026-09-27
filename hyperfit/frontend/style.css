@@ -88,6 +88,10 @@ h1 {
   gap: 24px;
   align-items: start;
 }
+.layout > aside,
+.layout > article {
+  min-width: 0;
+}
 section {
   background: white;
   border: 1px solid var(--border);
@@ -443,7 +447,7 @@ button[hidden],
 }
 @media (max-width: 740px) {
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .intro h1 {
     font-size: 26px;
@@ -460,7 +464,10 @@ button[hidden],
   }
   aside {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .section-top {
+    flex-wrap: wrap;
   }
   section {
     margin-bottom: 12px;
